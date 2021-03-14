@@ -30,7 +30,7 @@ CREATE TABLE `procedure_node`  (
   `priority_level` tinyint NOT NULL DEFAULT 1 COMMENT '优先级',
   `type` tinyint NOT NULL DEFAULT 1 COMMENT '节点类型1条件,2审批人',
   `content` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '文案',
-  `create_time` timestamp NOT NULL DEFAULT current_timestamp COMMENT '创建时间',
+  `create_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT current_timestamp ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
