@@ -286,7 +286,7 @@
                     parent_branch_id[i] = $(this).attr('parent-branch-id');
                     i++;
                 });
-                $.post("/yaleng_test/public/index/save",
+                $.post("/index/save",
                 {
                     'ids[]':ids,
                     'pids[]':pids,
@@ -303,7 +303,11 @@
             })
             // 点击取消
             $(document).on('click', '.user_selector_panel_footer .close-btn', function () {
-                location.reload(true);
+                $.post("/index/delete",
+                function(){
+                    alert('删除成功');
+                    location.reload(true);
+                });
             })
 
 
@@ -595,14 +599,11 @@
                     var old_pid = $(this).attr('data-pid');
                     var old_parent_branch_id = $(this).attr('parent-branch-id');
                     if (old_pid == pid && old_parent_branch_id == now_branch_id) {
-                        edit_pids[i] = old_id;
-                    }
-                    if (old_parent_branch_id == now_branch_id) {
                         edit_pbids[i] = old_id;
+                        edit_pids[i] = old_id;
                     }
                     i++
                 });
-
                 var nodeStr = `
     <div class="branch-wrap">
         <div class="branch-box-wrap">
@@ -669,17 +670,10 @@
                         var old_id = $(this).attr('data-index');
                         if (old_id == item) {
                             $(this).attr('data-pid', (last_id-1));
-                        }
-                    });
-                };　
-                for(var item of edit_pbids) {
-                    $("div[name='node_data']").each(function(){  
-                        var old_id = $(this).attr('data-index');
-                        if (old_id == item) {
                             $(this).attr('parent-branch-id', last_branch_id);
                         }
                     });
-                };　
+                };
 
             })
 
@@ -741,6 +735,7 @@
             $(document).on('click', '.auto-judge .close', function () {
                 var thisParent = $(this).parents('.branch-box').eq(0)
                 var parentLeng = $(this).parents('.branch-box').eq(0).children('.col-box').length
+                //alert(parentLeng);
                 if (parentLeng <= 2) {
                     var newNodeStr = $($(this).parents('.col-box').eq(0).siblings('.col-box').html())
                     var str = ''

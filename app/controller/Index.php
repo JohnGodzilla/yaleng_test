@@ -55,4 +55,14 @@ class Index extends BaseController
         $arr = ['data' => '保存成功'];
         return json($arr);
     }
+
+    public function delete()
+    {
+        
+        $pn_mode = new Procedure_node_model();
+        $pn_mode->del_procedure_node(1);
+
+        $arr = ['data' => '保存成功'];
+        return json($arr);
+    }
 }

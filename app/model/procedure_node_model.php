@@ -34,4 +34,8 @@ class Procedure_node_model extends Model
         return $data;
     }
     
+    public function del_procedure_node(int $pid)
+    {
+        Db::table('procedure_node')->where('p_id', $pid)->delete();
+    }
 }

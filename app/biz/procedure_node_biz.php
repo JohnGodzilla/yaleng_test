@@ -7,6 +7,7 @@ class Procedure_node_biz
 {
     private $is_show_arr = [];
     private $all_pn_data = [];
+    private $old_branch_id = 0;
 
     public function get_procedure_node()
     {
@@ -29,47 +30,18 @@ class Procedure_node_biz
         $this->all_pn_data = $pn_data;
         $pn_data = $this->get_tree_data($pn_data, 0);
         $pn_str = $this->get_html_str($pn_data);
-
-        // dump($pn_data);
-        // dump($this->is_show_arr);
         return $pn_str;
     }
 
-    private function get_branch_tree_data($data_array = [], $bpid = 0)
+    private function get_tree_data($data_array = [], $pid = 0)
     {
 
         $tree = [];
         foreach ($data_array as $v) {
-            if ($v['parent_branch_id'] == $bpid && $v['type'] == 2) {
-                $v['cb_data'] = $v;
+            if ($v['parent_id'] == $pid) {
+                $cdata = $this->get_tree_data($data_array, $v['id']);
+                $v['c_data'] = $cdata;
                 $tree[] = $v;
-            }
-            if ($v['parent_branch_id'] == $bpid && $v['type'] == 1) {
-                $cdata = $this->get_branch_tree_data($data_array, $v['branch_id']);
-                $v['cb_data'] = $cdata;
-                $tree[] = $v;
-            }
-        }
-        return $tree;
-    }
-
-    private function get_tree_data($data_array = [], $pid = 0, $has_branch = false, $branch_id = false)
-    {
-
-        $tree = [];
-        foreach ($data_array as $v) {
-            if ($has_branch) {
-                if ($v['parent_id'] == $pid && $v['parent_branch_id'] == $branch_id) {
-                    $cdata = $this->get_tree_data($data_array, $v['id']);
-                    $v['c_data'] = $cdata;
-                    $tree[] = $v;
-                }
-            } else {
-                if ($v['parent_id'] == $pid) {
-                    $cdata = $this->get_tree_data($data_array, $v['id']);
-                    $v['c_data'] = $cdata;
-                    $tree[] = $v;
-                }
             }
         }
         return $tree;
@@ -83,10 +55,11 @@ class Procedure_node_biz
         }
         foreach ($pn_data as $key => $value) {
             //审批条件
-            if (in_array($value['id'], $this->is_show_arr)) {
+            
+            //dump($value);
+            if (in_array((int)$value['id'], $this->is_show_arr)) {
                 continue;
             }
-
             if ($value['type'] == 1) {
                 $pingxing_pn = [];
                 $branch_id = $value['branch_id'];
@@ -98,6 +71,11 @@ class Procedure_node_biz
                                 <div class="branch-box"><button class="add-branch">添加条件</button>';
                 $i = 0;
                 foreach ($pingxing_pn as $v) {
+                    //dump($v);
+                    if (in_array((int)$v['id'], $this->is_show_arr)) {
+                        continue;
+                    }
+                    
                     $branch_id = $v['branch_id'];
                     $str .= '<div class="col-box">';
                     if ($i == 0) {
@@ -130,7 +108,7 @@ class Procedure_node_biz
                             </div>
                         </div>';
                         
-                    $this->is_show_arr[] = $v['id'];
+                    $this->is_show_arr[] = (int)$v['id'];
                     $i++;
                     if (isset($v['c_data']) && !empty($v['c_data'])) {
                         $str .= $this->get_html_str($v['c_data']);
@@ -147,23 +125,21 @@ class Procedure_node_biz
                         </div>';
                 $str .= '</div>';
                 $temp_nd_data = [];
-                $last_data = '';
                 EACH:
-                foreach($this->all_pn_data as $value) {
-                    if ($value['parent_branch_id'] == $branch_id && $value['type'] == 1) {
-                        $temp_nd_data = $this->get_tree_data($this->all_pn_data, 0, true, $branch_id);
-                        //dump($temp_nd_data);
-                        $last_data = $value;
+                foreach($this->all_pn_data as $value1) {
+                    if ($value1['parent_branch_id'] == $branch_id && $value1['parent_id'] == 0 && !in_array($value1['id'], $this->is_show_arr)) {
+                        $value1['c_data'] = $this->get_tree_data($this->all_pn_data, $value1['id']);
+                        $temp_nd_data[] = $value1;
                     }
+                    //dump($temp_nd_data);
                 }
                 if (!empty($temp_nd_data)) {
-                    $str .= $this->get_html_str($temp_nd_data);
+                    if ($temp_nd_data[0]['branch_id'] != $branch_id) {
+                        $str .= $this->get_html_str($temp_nd_data);
+                        $branch_id = $temp_nd_data[0]['branch_id'];
+                        goto EACH;
+                    }
                 }
-                if (!empty($last_data) && $last_data['branch_id'] != $branch_id) {
-                    $branch_id = $last_data['branch_id'];
-                    goto EACH;
-                }
-                
                 //dump($temp_nd_data);
                 //审批人
             } else if ($value['type'] == 2) {
@@ -187,10 +163,10 @@ class Procedure_node_biz
                     </div>
                 </div>
                 ';
+                $this->is_show_arr[] = (int)$value['id'];
                 if (isset($value['c_data']) && !empty($value['c_data'])) {
                     $str .= $this->get_html_str($value['c_data']);
                 }
-                $this->is_show_arr[] = $value['id'];
             }
         }
         return $str;
